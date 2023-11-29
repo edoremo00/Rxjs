@@ -1,0 +1,65 @@
+ -STREAMS
+    multi value stream non si completano
+   -COMBINARE STREAM--> di solito lo si fa ma con API native in JS 
+    si va incontro a callback hell(a meno di usare Async await e promises) e la gestione non è comoda. per questo esiste RxJs
+    acronimo di reactive extensions for javascript
+
+-RXJS
+  è buona norma usare varibaile$ se lo assegniamo ad un observable. si usa di solito il $.
+
+-OPERATORI
+  interval--> un pò come setinterval, emtte un numero crescente ogni tot secondi
+  
+  timer--> emette il primo valore dopo un tempo specificato e i successivi valori dopo un altor tempo indicato o subito se non presente
+  
+  fromevent--> serve per creare uno stream da un evento DOM
+
+-Il metodo SUBSCRIBE
+
+ci ritorna una Subscription e ci permette di registrarci ai valori emessi da degli stream.
+accetta 3 callback: next, error e complete. next serve per registrarci ai valori emessi, error per gestire eventuali errori causati e complete che serve per sapere quando il nostro observable si è completato.
+se observable va in errore metodo complete non viene chiamato. errore e completato sono esclusivi o uno o l'altro
+
+promise vienee eseguita subito, observable non finchè non ci sottoscriviamo
+
+-creare un Oservable
+ oltre ad una serie di operatori come ad esempio OF, è possibile creare un observable anche con il suo costruttore.
+il primo parametro che passiamo è una funzione detta observer
+
+MAP OPERATOR
+usato per trasformare lo stream di valori. applica una funzione ai dati emessi e ritorna un observable. in ciò è simile a quanto fa il metodo map degli array in JS.
+per applicare un operatore o più operatori abbiamo bisogno della funzione pipe, che ci permette di applicare una serie di operatori a mo di tubo ai dati che riceviamo dallo stream
+
+FILTER OPERATOR
+usato per filtrare i valori ricevuti, vuole una funzione che ritorna true o false se deve includere o meno quei valori nell'output. se usato in combinazione con il metodo subscribe noterò che 
+i valori che non passano non faranno triggerare il metodo subscribe
+
+PRENDERE I DATI DA OBSERVABLE DI CORSI E FARNE IL DISPLAY.
+	METODO IMPERATIVO DENTRO SUBSCRIBE
+		abbiamo sostanzialmente  approcci il primo quello IMPERATIVO consiste nel definire delle variabili nel componente e assegnarci il risultato dell'observable nella callback di NEXT.
+		questo approcio è ok se non dobbiamo aggiungere particolari logiche, ma se ad esempio dobbiamo aggiungere logica nel metodo subscribe diventa un bel casino. magari dobbiamo aggiungere altre chiamate http
+		ed andremmo ad ottenere delle sottoscrizioni innestate, ricreando il tanto fatidico CALLBACK HELL, che è proprio quello che vogliamo evitare.
+
+	METODO REATTIVO(REACTIVE)
+            definisco in componente la definizione di 2 stream di valori,di 2 observable di corsi.
+		definisco che valori avrenno questi 2 observable applicando un filtro sulla categoria del corso usando l'operaratore map che anch'esso ritorna un observable
+		la sottoscrizione a questi stream avviene nel template usando l'async pipe di Angular. tuttavia ciò causa 2 sottoscrizioni e quindi 2 chiamate API invece di una sola.(vedremo come risolvere questo problema).
+		la pipe async in automatico fa il subscribe e passa i dati all'altro componente per fare il display.
+
+SHAREREPLAY OPERATOR
+	mi permette di prendere dati una volta dal BE e coloro che si sottoscrivono dopo avranno la risposta da questo operatore senza fare ulteriori richieste HTTP.è come una sorta di cache
+
+CONCATENARE OBSERVABLE
+
+    la cosa da ricordarsi relativa alla concatenazione di observable con i mapping operator(map,concatmap,merge,switchmap,exhaustmap ecc) è che è fortemente collegata al concetto di completamento dell'observable
+	
+	CONCAT OPERATOR
+		questo operatore riotrna un unico observable e chiede in input n observable. rispetta l'ordine in cui gli observable sono passati e aspetta che venga completato il primo per passare al secondo ecc
+		nel caso in cui il primo observable non si completi non passerà mai al secondo
+		
+
+	CONCATMAP OPERATOR
+		questo operatore ci permette di concatenare e creare nuovi observable. (nel nostro esempio lo creaimo per implementare la funzionalità di salvataggio automatico del form mentre stiamo scrivendo.
+		praticamente ad ogni nuovo valore valido emesso dall'observable valuechanges andiamo a creare un altro observable grazie a concatmap, il quale andrà a chiamare il BE per salvare i dati. siccome il form potrebbe mandare altri valori prima che il salvataggio abbia fine, usando concatmaò ci assicuriamo che 
+		soltanto quando la chiamata in esecuzione ha terminato passiamo alla successiva. creiamo quindi una situazione in cui i salvataggi avvengono in sequenza
+ 
